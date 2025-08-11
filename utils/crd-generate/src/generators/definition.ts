@@ -10,6 +10,7 @@ import {
 } from "@kubernetes-models/generate";
 import { formatComment, trimSuffix } from "@kubernetes-models/string-util";
 import { getRelativePath, getSchemaPath } from "../utils";
+import { GenerateOptions } from "../generate";
 
 function getFieldType(key: string[]): string | undefined {
   if (key.length === 1 && key[0] === "metadata") {
@@ -19,7 +20,8 @@ function getFieldType(key: string[]): string | undefined {
 
 function generateDefinition(
   gvk: GroupVersionKind,
-  def: Definition
+  def: Definition,
+  options?: GenerateOptions
 ): OutputFile {
   const apiVersion = getAPIVersion(gvk);
   const className = gvk.kind;
@@ -95,11 +97,32 @@ constructor(data?: ModelData<${interfaceName}>) {
     path: getRelativePath(path, getSchemaPath(def.schemaId))
   });
 
+  // Add decorator import if specified
+  let decoratorName = "";
+  if (options?.modelDecorator && options?.modelDecoratorPath) {
+    // Extract decorator name from the decorator string (remove @ and parentheses)
+    const decoratorMatch = options.modelDecorator.match(
+      /^@?([A-Za-z_$][A-Za-z0-9_$]*)/
+    );
+    if (decoratorMatch) {
+      decoratorName = decoratorMatch[1];
+      imports.push({
+        name: decoratorName,
+        path: options.modelDecoratorPath
+      });
+    }
+  }
+
   if (def.schema.description) {
     comment = formatComment(def.schema.description, {
       deprecated: /^deprecated/i.test(def.schema.description)
     });
   }
+
+  // Apply decorator to class if specified
+  const decoratorLine = options?.modelDecorator
+    ? `${options.modelDecorator}\n`
+    : "";
 
   return {
     path,
@@ -107,21 +130,24 @@ constructor(data?: ModelData<${interfaceName}>) {
 
 ${comment}export interface ${interfaceName} ${interfaceContent}
 
-${comment}export class ${className} extends Model<${interfaceName}> implements ${interfaceName} ${classContent}
+${comment}${decoratorLine}export class ${className} extends Model<${interfaceName}> implements ${interfaceName} ${classContent}
 
 setValidateFunc(${className}, validate as ValidateFunc<${interfaceName}>);
 `
   };
 }
 
-const generateDefinitions: Generator = async (definitions) => {
+const generateDefinitions = async (
+  definitions: readonly Definition[],
+  options?: GenerateOptions
+): Promise<OutputFile[]> => {
   const output: OutputFile[] = [];
 
   for (const def of definitions) {
     const gvks = def.gvk;
 
     if (gvks && gvks.length) {
-      output.push(generateDefinition(gvks[0], def));
+      output.push(generateDefinition(gvks[0], def, options));
     }
   }
 

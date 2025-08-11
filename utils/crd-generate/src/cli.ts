@@ -32,13 +32,43 @@ export async function run(): Promise<void> {
       describe: "YAML version.",
       choices: ["1.0", "1.1", "1.2"]
     })
+    .option("modelDecorator", {
+      type: "string",
+      describe:
+        "Optional decorator to apply to model classes (e.g., '@MyDecorator()')"
+    })
+    .option("modelDecoratorPath", {
+      type: "string",
+      describe: "Import path for the model decorator"
+    })
+    .check((argv) => {
+      // Validate that both decorator options are provided together or neither is provided
+      const hasDecorator = !!argv.modelDecorator;
+      const hasDecoratorPath = !!argv.modelDecoratorPath;
+
+      if (hasDecorator && !hasDecoratorPath) {
+        throw new Error(
+          "modelDecoratorPath is required when modelDecorator is provided"
+        );
+      }
+
+      if (hasDecoratorPath && !hasDecorator) {
+        throw new Error(
+          "modelDecorator is required when modelDecoratorPath is provided"
+        );
+      }
+
+      return true;
+    })
     .parse();
 
   try {
     await generate({
       input: await readFiles(args.input),
       outputPath: args.output,
-      yamlVersion: args.yamlVersion as GenerateOptions["yamlVersion"]
+      yamlVersion: args.yamlVersion as GenerateOptions["yamlVersion"],
+      modelDecorator: args.modelDecorator,
+      modelDecoratorPath: args.modelDecoratorPath
     });
   } catch (err) {
     console.error(err);

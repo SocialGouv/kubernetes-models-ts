@@ -134,16 +134,19 @@ function dedupeDefinitions(definitions: readonly Definition[]): Definition[] {
   return Object.values(map);
 }
 
-const generator = composeGenerators([
-  generateDefinitions,
-  generateSchemas,
-  generateAliases
-]);
+const createGenerator = (options: GenerateOptions) =>
+  composeGenerators([
+    (definitions) => generateDefinitions(definitions, options),
+    generateSchemas,
+    generateAliases
+  ]);
 
 export interface GenerateOptions {
   input: string;
   outputPath: string;
   yamlVersion?: DocumentOptions["version"];
+  modelDecorator?: string;
+  modelDecoratorPath?: string;
 }
 
 export async function generate(options: GenerateOptions): Promise<void> {
@@ -191,6 +194,7 @@ export async function generate(options: GenerateOptions): Promise<void> {
     }
   }
 
+  const generator = createGenerator(options);
   const files = await generator(dedupeDefinitions(definitions));
 
   await writeOutputFiles(options.outputPath, files);
