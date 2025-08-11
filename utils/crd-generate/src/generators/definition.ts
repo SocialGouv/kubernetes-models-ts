@@ -121,7 +121,7 @@ constructor(data?: ModelData<${interfaceName}>) {
 
   // Apply decorator to class if specified
   const decoratorLine = options?.modelDecorator
-    ? `${options.modelDecorator}\n`
+    ? `${options.modelDecorator}(${JSON.stringify(gvk.group)}, ${JSON.stringify(gvk.kind)})\n`
     : "";
 
   return {
