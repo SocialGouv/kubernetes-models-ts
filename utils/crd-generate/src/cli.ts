@@ -42,6 +42,34 @@ export async function run(): Promise<void> {
       describe: "Base class import path",
       default: "@kubernetes-models/base"
     })
+    .option("modelDecorator", {
+      type: "string",
+      describe:
+        "Optional decorator to apply to model classes (e.g., '@MyDecorator()')"
+    })
+    .option("modelDecoratorPath", {
+      type: "string",
+      describe: "Import path for the model decorator"
+    })
+    .check((argv) => {
+      // Validate that both decorator options are provided together or neither is provided
+      const hasDecorator = !!argv.modelDecorator;
+      const hasDecoratorPath = !!argv.modelDecoratorPath;
+
+      if (hasDecorator && !hasDecoratorPath) {
+        throw new Error(
+          "modelDecoratorPath is required when modelDecorator is provided"
+        );
+      }
+
+      if (hasDecoratorPath && !hasDecorator) {
+        throw new Error(
+          "modelDecorator is required when modelDecoratorPath is provided"
+        );
+      }
+
+      return true;
+    })
     .parse();
 
   try {
@@ -50,7 +78,9 @@ export async function run(): Promise<void> {
       outputPath: args.output,
       yamlVersion: args.yamlVersion as GenerateOptions["yamlVersion"],
       customBaseClassName: args.customBaseClassName,
-      customBaseClassImportPath: args.customBaseClassImportPath
+      customBaseClassImportPath: args.customBaseClassImportPath,
+      modelDecorator: args.modelDecorator,
+      modelDecoratorPath: args.modelDecoratorPath
     });
   } catch (err) {
     console.error(err);

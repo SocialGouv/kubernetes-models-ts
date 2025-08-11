@@ -6,7 +6,8 @@ import {
   GroupVersionKind,
   writeOutputFiles,
   Schema,
-  getAPIVersion
+  getAPIVersion,
+  GenerateOptions as BaseGenerateOptions
 } from "@kubernetes-models/generate";
 import generateDefinitions from "./generators/definition";
 import generateAliases from "./generators/alias";
@@ -134,11 +135,13 @@ function dedupeDefinitions(definitions: readonly Definition[]): Definition[] {
   return Object.values(map);
 }
 
-const generator = composeGenerators([
-  generateDefinitions,
-  generateSchemas,
-  generateAliases
-]);
+const createGenerator = (options: GenerateOptions) =>
+  composeGenerators([
+    (definitions: readonly Definition[], baseOptions?: BaseGenerateOptions) =>
+      generateDefinitions(definitions, options),
+    generateSchemas,
+    generateAliases
+  ]);
 
 export interface GenerateOptions {
   input: string;
@@ -146,6 +149,8 @@ export interface GenerateOptions {
   yamlVersion?: DocumentOptions["version"];
   customBaseClassName?: string;
   customBaseClassImportPath?: string;
+  modelDecorator?: string;
+  modelDecoratorPath?: string;
 }
 
 export async function generate(options: GenerateOptions): Promise<void> {
@@ -193,6 +198,7 @@ export async function generate(options: GenerateOptions): Promise<void> {
     }
   }
 
+  const generator = createGenerator(options);
   const files = await generator(dedupeDefinitions(definitions), {
     baseClassName: options.customBaseClassName,
     baseClassImportPath: options.customBaseClassImportPath
