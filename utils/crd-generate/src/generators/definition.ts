@@ -24,6 +24,7 @@ function generateDefinition(
 ): OutputFile {
   const apiVersion = getAPIVersion(gvk);
   const className = gvk.kind;
+  const declaredClassName = `Model${gvk.kind}`;
   const interfaceName = `I${className}`;
   const imports: Import[] = [];
   const interfaceContent = generateInterface(def.schema, {
@@ -130,7 +131,8 @@ constructor(data?: ModelData<${interfaceName}>) {
 
 ${comment}export interface ${interfaceName} ${interfaceContent}
 
-${comment}${decoratorLine}export class ${className} extends Model<${interfaceName}> implements ${interfaceName} ${classContent}
+${comment}${decoratorLine} class ${declaredClassName} extends Model<${interfaceName}> implements ${interfaceName} ${classContent}
+export { ${declaredClassName} as ${className} };
 
 setValidateFunc(${className}, validate as ValidateFunc<${interfaceName}>);
 `
