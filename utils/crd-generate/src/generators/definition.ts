@@ -23,15 +23,15 @@ function generateDefinition(
   options: GenerateOptions
 ): OutputFile {
   const apiVersion = getAPIVersion(gvk);
-  const className = gvk.kind;
-  const declaredClassName = `Model${gvk.kind}`;
-  const interfaceName = `I${className}`;
+  const className = `Model${gvk.kind}`;
+  const exportName = gvk.kind;
+  const interfaceName = `I${exportName}`;
   const imports: Import[] = [];
   const interfaceContent = generateInterface(def.schema, {
     includeDescription: true,
     getFieldType
   });
-  const path = `${apiVersion}/${className}.ts`;
+  const path = `${apiVersion}/${exportName}.ts`;
   let classContent = generateInterface(def.schema, {
     getFieldType(key) {
       if (key.length === 1) {
@@ -131,8 +131,11 @@ constructor(data?: ModelData<${interfaceName}>) {
 
 ${comment}export interface ${interfaceName} ${interfaceContent}
 
-${comment}${decoratorLine} class ${declaredClassName} extends Model<${interfaceName}> implements ${interfaceName} ${classContent}
-export { ${declaredClassName} as ${className} };
+${comment}${decoratorLine} class ${className} extends Model<${interfaceName}> implements ${interfaceName} ${classContent}
+
+export {
+  ${interfaceName} as ${exportName}
+};
 
 setValidateFunc(${className}, validate as ValidateFunc<${interfaceName}>);
 `
