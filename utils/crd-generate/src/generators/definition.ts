@@ -134,7 +134,7 @@ ${comment}export interface ${interfaceName} ${interfaceContent}
 ${comment}${decoratorLine} class ${className} extends Model<${interfaceName}> implements ${interfaceName} ${classContent}
 
 export {
-  ${interfaceName} as ${exportName}
+  ${className} as ${exportName}
 };
 
 setValidateFunc(${className}, validate as ValidateFunc<${interfaceName}>);
