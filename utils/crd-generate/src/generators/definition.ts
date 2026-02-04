@@ -118,6 +118,8 @@ constructor(data?: ModelData<${interfaceName}>) {
     ? `export const ${exportName} = ${options.modelWrapper}(${className}, ${JSON.stringify(gvk.group)}, ${JSON.stringify(gvk.kind)});`
     : `export {\n  ${className} as ${exportName}\n};`;
 
+  const exportType = `export type ${exportName} = InstanceType<typeof ${exportName}>;`;
+
   const validateTarget = options?.modelWrapper ? exportName : className;
 
   return {
@@ -129,6 +131,8 @@ constructor(data?: ModelData<${interfaceName}>) {
 ${comment}class ${className} extends Model<${interfaceName}> implements ${interfaceName} ${classContent}
 
 ${exportModel}
+
+${exportType}
 
 setValidateFunc(${validateTarget}, validate as ValidateFunc<${interfaceName}>);
 `
