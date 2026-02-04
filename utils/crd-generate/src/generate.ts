@@ -149,8 +149,8 @@ export interface GenerateOptions {
   yamlVersion?: DocumentOptions["version"];
   customBaseClassName?: string;
   customBaseClassImportPath?: string;
-  modelDecorator?: string;
-  modelDecoratorPath?: string;
+  modelWrapper?: string;
+  modelWrapperPath?: string;
 }
 
 export async function generate(options: GenerateOptions): Promise<void> {

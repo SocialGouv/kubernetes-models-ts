@@ -98,20 +98,14 @@ constructor(data?: ModelData<${interfaceName}>) {
     path: getRelativePath(path, getSchemaPath(def.schemaId))
   });
 
-  // Add decorator import if specified
-  let decoratorName = "";
-  if (options?.modelDecorator && options?.modelDecoratorPath) {
-    // Extract decorator name from the decorator string (remove @ and parentheses)
-    const decoratorMatch = options.modelDecorator.match(
-      /^@?([A-Za-z_$][A-Za-z0-9_$]*)/
-    );
-    if (decoratorMatch) {
-      decoratorName = decoratorMatch[1];
-      imports.push({
-        name: decoratorName,
-        path: options.modelDecoratorPath
-      });
-    }
+  // Add model wrapper import if specified
+  if (options?.modelWrapper && options?.modelWrapperPath) {
+    // `modelWrapper` must be a valid TS identifier since we import it as a named import.
+    // The wrapper is expected to return a constructable model so we can call `setValidateFunc()`.
+    imports.push({
+      name: options.modelWrapper,
+      path: options.modelWrapperPath
+    });
   }
 
   if (def.schema.description) {
@@ -120,24 +114,23 @@ constructor(data?: ModelData<${interfaceName}>) {
     });
   }
 
-  // Apply decorator to class if specified
-  const decoratorLine = options?.modelDecorator
-    ? `${options.modelDecorator}(${JSON.stringify(gvk.group)}, ${JSON.stringify(gvk.kind)})\n`
-    : "";
+  const exportModel = options?.modelWrapper
+    ? `export const ${exportName} = ${options.modelWrapper}(${className}, ${JSON.stringify(gvk.group)}, ${JSON.stringify(gvk.kind)});`
+    : `export {\n  ${className} as ${exportName}\n};`;
+
+  const validateTarget = options?.modelWrapper ? exportName : className;
 
   return {
     path,
     content: `${generateImports(imports)}
 
-${comment}export interface ${interfaceName} ${interfaceContent}
+ ${comment}export interface ${interfaceName} ${interfaceContent}
 
-${comment}${decoratorLine} class ${className} extends Model<${interfaceName}> implements ${interfaceName} ${classContent}
+${comment}class ${className} extends Model<${interfaceName}> implements ${interfaceName} ${classContent}
 
-export {
-  ${className} as ${exportName}
-};
+${exportModel}
 
-setValidateFunc(${className}, validate as ValidateFunc<${interfaceName}>);
+setValidateFunc(${validateTarget}, validate as ValidateFunc<${interfaceName}>);
 `
   };
 }

@@ -42,29 +42,29 @@ export async function run(): Promise<void> {
       describe: "Base class import path",
       default: "@kubernetes-models/base"
     })
-    .option("modelDecorator", {
+    .option("modelWrapper", {
       type: "string",
       describe:
-        "Optional decorator to apply to model classes (e.g., '@MyDecorator()')"
+        "Optional wrapper function to wrap exported models (e.g., 'wrapModel')"
     })
-    .option("modelDecoratorPath", {
+    .option("modelWrapperPath", {
       type: "string",
-      describe: "Import path for the model decorator"
+      describe: "Import path for the model wrapper"
     })
     .check((argv) => {
-      // Validate that both decorator options are provided together or neither is provided
-      const hasDecorator = !!argv.modelDecorator;
-      const hasDecoratorPath = !!argv.modelDecoratorPath;
+      // Validate that both wrapper options are provided together or neither is provided
+      const hasWrapper = !!argv.modelWrapper;
+      const hasWrapperPath = !!argv.modelWrapperPath;
 
-      if (hasDecorator && !hasDecoratorPath) {
+      if (hasWrapper && !hasWrapperPath) {
         throw new Error(
-          "modelDecoratorPath is required when modelDecorator is provided"
+          "modelWrapperPath is required when modelWrapper is provided"
         );
       }
 
-      if (hasDecoratorPath && !hasDecorator) {
+      if (hasWrapperPath && !hasWrapper) {
         throw new Error(
-          "modelDecorator is required when modelDecoratorPath is provided"
+          "modelWrapper is required when modelWrapperPath is provided"
         );
       }
 
@@ -79,8 +79,8 @@ export async function run(): Promise<void> {
       yamlVersion: args.yamlVersion as GenerateOptions["yamlVersion"],
       customBaseClassName: args.customBaseClassName,
       customBaseClassImportPath: args.customBaseClassImportPath,
-      modelDecorator: args.modelDecorator,
-      modelDecoratorPath: args.modelDecoratorPath
+      modelWrapper: args.modelWrapper,
+      modelWrapperPath: args.modelWrapperPath
     });
   } catch (err) {
     console.error(err);
